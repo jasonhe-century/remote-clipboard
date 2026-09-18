@@ -1,0 +1,138 @@
+{
+  "name": "remote-clipboard-image",
+  "displayName": "Remote Clipboard Image",
+  "description": "把本地剪贴板里的图片保存到 VSCode 远程主机的临时目录，并把文件路径自动送进 Claude Code",
+  "version": "0.1.0",
+  "publisher": "jasonhe-century",
+  "license": "MIT",
+  "author": {
+    "name": "JasonHe"
+  },
+  "homepage": "https://github.com/jasonhe-century/remote-clipboard#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jasonhe-century/remote-clipboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jasonhe-century/remote-clipboard/issues"
+  },
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#4F46E5",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "clipboard",
+    "image",
+    "paste",
+    "remote",
+    "claude code"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "remoteClipboardImage.paste",
+        "title": "粘贴剪贴板图片到远程并插入路径",
+        "category": "Remote Clipboard Image"
+      },
+      {
+        "command": "remoteClipboardImage.cleanup",
+        "title": "清理过期的剪贴板图片",
+        "category": "Remote Clipboard Image"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "remoteClipboardImage.paste",
+        "key": "ctrl+alt+v",
+        "mac": "cmd+alt+v"
+      }
+    ],
+    "configuration": {
+      "title": "Remote Clipboard Image",
+      "properties": {
+        "remoteClipboardImage.directory": {
+          "type": "string",
+          "default": "/tmp/claude-images",
+          "markdownDescription": "图片保存到远程主机的哪个目录。支持 `~`、`${workspaceFolder}`、`${tmpdir}`。相对路径会挂到系统临时目录下。",
+          "scope": "machine-overridable"
+        },
+        "remoteClipboardImage.fileNamePrefix": {
+          "type": "string",
+          "default": "clipboard",
+          "description": "文件名前缀，最终形如 clipboard-20260918-143012-874.png。自动清理只会删除带此前缀的文件。"
+        },
+        "remoteClipboardImage.deliver": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "terminal",
+            "editor",
+            "clipboard"
+          ],
+          "enumDescriptions": [
+            "有活动终端就发给终端，否则退回到活动编辑器，再否则只放进剪贴板",
+            "始终发给活动终端（在集成终端里跑 claude 时用这个）",
+            "始终插入到活动编辑器的光标处",
+            "只把路径放进剪贴板，由你自己 Ctrl+V"
+          ],
+          "default": "auto",
+          "description": "路径送到哪里。"
+        },
+        "remoteClipboardImage.appendSpace": {
+          "type": "boolean",
+          "default": true,
+          "description": "在路径后面补一个空格，方便接着打字。"
+        },
+        "remoteClipboardImage.copyPathToClipboard": {
+          "type": "boolean",
+          "default": true,
+          "description": "同时把路径写进剪贴板，作为兜底（纯文本粘贴在远程是正常的）。"
+        },
+        "remoteClipboardImage.retentionDays": {
+          "type": "number",
+          "default": 7,
+          "minimum": 0,
+          "description": "启动时自动删除超过这么多天的旧图片。设为 0 关闭自动清理。"
+        },
+        "remoteClipboardImage.manualPasteTimeoutSeconds": {
+          "type": "number",
+          "default": 20,
+          "minimum": 3,
+          "description": "当无法静默读取剪贴板、需要你手动按 Ctrl+V 时，等待多少秒后自动放弃。"
+        },
+        "remoteClipboardImage.afterInsertCommand": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "插入路径后额外执行的命令 ID，用来把焦点还回你想要的地方。例：`claude-vscode.focus`。留空则不执行。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --no-dependencies -o remote-clipboard-image.vsix",
+    "publish": "vsce publish --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "typescript": "^5.4.5"
+  }
+}
