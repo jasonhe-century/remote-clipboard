@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # 在 job 级中转一下，好让下面的 step 能在 if 里判断它是否为空
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v7
@@ -62,14 +63,21 @@ jobs:
       # 后面三步统一用 --packagePath 发布同一个产物，保证发到两个市场、
       # 挂到 Release 上的三份文件字节完全一致
       - name: 发布到 VS Code Marketplace
-        if: ${{ github.event_name == 'push' || !inputs.dry_run }}
+        id: marketplace
+        if: ${{ (github.event_name == 'push' || !inputs.dry_run) && env.VSCE_PAT != '' }}
         env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
           VSIX: ${{ steps.meta.outputs.vsix }}
         run: npx vsce publish --packagePath "$VSIX"
 
+      # 别让"少发了一个市场"悄无声息地过去
+      - name: 提示未发布到 Marketplace
+        if: ${{ github.event_name == 'push' && steps.marketplace.outcome == 'skipped' }}
+        run: |
+          echo "::warning::未配置 VSCE_PAT，已跳过 VS Code Marketplace。补上 secret 后手动触发本工作流（dry_run 取消勾选）即可补发同一版本。"
+
       # 没配 OVSX_PAT 就整步跳过，不让它拖垮整个发布
       - name: 发布到 Open VSX
+        id: openvsx
         if: ${{ (github.event_name == 'push' || !inputs.dry_run) && env.OVSX_PAT != '' }}
         env:
           VSIX: ${{ steps.meta.outputs.vsix }}

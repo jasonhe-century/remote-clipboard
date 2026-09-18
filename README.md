@@ -100,12 +100,16 @@ git tag v0.1.1 && git push origin v0.1.1
 
 | Secret | 用途 | 从哪拿 |
 | --- | --- | --- |
-| `VSCE_PAT` | 发到 VS Code Marketplace | [Azure DevOps](https://dev.azure.com/) 的 PAT，Organization 选 All accessible，Scopes 选 Marketplace → Manage |
+| `VSCE_PAT` | 发到 VS Code Marketplace（没配就自动跳过这一步，GitHub Release 照样建） | [Azure DevOps](https://dev.azure.com/) 的 PAT，Organization 选 All accessible，Scopes 选 Marketplace → Manage |
 | `OVSX_PAT` | 发到 Open VSX（可选，没配就自动跳过这步） | [open-vsx.org](https://open-vsx.org/) 用户设置里的 Access Token |
 
 工作流会先校验 tag 和 `package.json` 里的 `version` 是否一致，不一致直接失败 —— Marketplace
 不允许重发同一个版本号，所以这个 guard 必须在发布动作之前。两个市场和 Release 上挂的
 vsix 都来自同一次 `vsce package`，字节完全一致。
+
+两个 token 都是"没配就跳过对应的那一步"，不会让整个发布失败 —— 所以即使一个市场都不发，
+打 tag 仍然会产出一个挂着 vsix 的 GitHub Release，别的机器直接下载 `code --install-extension`
+就能装。后来补上 secret 想补发同一个版本：Actions 页面手动触发、取消勾选 `dry_run` 即可。
 
 想先验证流水线不真发布：Actions 页面手动触发（workflow_dispatch），`dry_run` 保持勾选，
 它只打包并把 vsix 作为 artifact 上传。
