@@ -3,7 +3,7 @@
   "displayName": "Remote Clipboard Image",
   "description": "把本地剪贴板里的图片保存到 VSCode 远程主机的临时目录，并把文件路径自动送进 Claude Code",
   "version": "0.1.0",
-  "publisher": "jasonhe-century",
+  "publisher": "jhe8422",
   "license": "MIT",
   "author": {
     "name": "JasonHe"
